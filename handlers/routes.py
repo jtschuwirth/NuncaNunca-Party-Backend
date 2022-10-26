@@ -1,7 +1,13 @@
-#Import handlers
+from handlers.handle_message import handle_message
+from handlers.handle_game_start import handle_game_start
+from handlers.handle_change_level import handle_change_level
+from handlers.handle_endturn import handle_endturn
 
-#Add routes and handlers to the dict {"route_key": handler_function}
 route_dic = {
+    "sendmessage": handle_message,
+    "startgame": handle_game_start,
+    "changelevel": handle_change_level,
+    "endturn": handle_endturn
 
 }
 
