@@ -12,14 +12,30 @@ def handle_disconnect(table, event, connection_id, apig_management_client):
     status_code = 200
     try:
         item_response = table.get_item(Key={'connection_id': connection_id})
-        table.delete_item(Key={'connection_id': connection_id})
         room_id = item_response['Item']['room_id']
-        recipients = get_all_recipients(table, room_id)
-        message = json.dumps({"disconnected": connection_id})
-        handle_ws_message(table, recipients, message, apig_management_client)
+
+        if item_response["Item"]["turn_status"] == "hosting":
+            scan_response = table.scan(
+                FilterExpression="room_id = :id",
+                ExpressionAttributeValues={
+                    ":id": room_id   
+            })
+            for item in scan_response['Items']:
+                table.delete_item(Key={'connection_id': item["connection_id"]})
         
-        if check_if_all_passed(table, room_id):
-            return round_end(table, room_id, apig_management_client)
+        else:
+            table.update_item(
+                Key={'connection_id': connection_id},
+                UpdateExpression = "SET turn_status = :status",
+                ExpressionAttributeValues={
+                    ':status': "disconnected"
+            })
+            recipients = get_all_recipients(table, room_id)
+            message = json.dumps({"disconnected": connection_id})
+            handle_ws_message(table, recipients, message, apig_management_client)
+            
+            if check_if_all_passed(table, room_id):
+                return round_end(table, room_id, apig_management_client)
         
     except ClientError:
         status_code = 503

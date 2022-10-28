@@ -30,6 +30,8 @@ def round_end(table, room_id, apig_management_client):
                             ':v': 1
                 })
                 continue
+            elif item["turn_status"] == "disconnected":
+                continue
 
             Item={}
             for key, attribute in item.items():
