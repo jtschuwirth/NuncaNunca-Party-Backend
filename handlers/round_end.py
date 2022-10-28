@@ -5,6 +5,7 @@ from game_functions.getNewPrompt import getNewPrompt
 
 from auxiliary_functions.get_all_recipients import get_all_recipients
 from auxiliary_functions.handle_ws_message import handle_ws_message
+from game_functions.point_distribution import point_distribution
 
 
 def round_end(table, room_id, apig_management_client):
@@ -49,49 +50,8 @@ def round_end(table, room_id, apig_management_client):
     except:
         return 404
 
-    response_data=[]
-    try:
-        for item in data:
-            points=0
-            if item["guess"] == total_answer:
-                points=100
-            elif item["guess"] == total_answer+1 or item["guess"] == total_answer-1:
-                points=50
-            table.update_item(
-                Key={'connection_id': item["connection_id"]},
-                UpdateExpression = "ADD points :p",
-                ExpressionAttributeValues={
-                    ':p': points
-            })
-
-            if not "points" in item:
-                item["last_turn_points"] = 0
-                item["points"] = points
-            else:
-                item["last_turn_points"] = item["points"]
-                item["points"]+= points
-
-            response_data.append(item)
-    except:
-        status_code=503
-    
-    maximum_recon_tries = 3
-    reconnection_tries = 0
-
-    while reconnection_tries < maximum_recon_tries:
-        try:
-            prompt = getNewPrompt(level, index, room_id)
-            if prompt["phrase"]:
-                break
-            else:
-                prompt = 0
-        except:
-            prompt = 0
-
-        reconnection_tries+=1
-
-    if not prompt:
-        prompt = {"phrase": "Error fetching prompt", "lvl":1}
+    response_data = point_distribution(table, data, total_answer)
+    prompt = getNewPrompt(level, index, room_id)
 
     try:
         recipients = get_all_recipients(table, room_id)
