@@ -5,7 +5,7 @@ def check_if_all_passed(table, room_id):
             ":id": room_id   
         })
     have_passed = [item["turn_status"] for item in scan_response['Items']]
-    if "playing" in have_passed:
+    if "playing" in have_passed or "done" not in have_passed:
         return False
     else:
         return True
