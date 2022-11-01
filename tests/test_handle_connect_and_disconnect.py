@@ -82,15 +82,15 @@ class TestHandleConnectDisconnect(unittest.TestCase):
 
         #Test: after host connects, player should be able to connect to the room
         self.assertTrue(handle_connect(table, event1, "host_id", apig_management_client) == 200)
-        self.assertTrue(handle_connect(table, event2, "test_id", apig_management_client) == 200)
+        self.assertTrue(handle_connect(table, event2, "test_id_1", apig_management_client) == 200)
 
         #Test: no account should be able to connect using a name that is already used
-        self.assertTrue(handle_connect(table, event2, "test_id", apig_management_client) == 503)
+        self.assertTrue(handle_connect(table, event2, "test_id_1", apig_management_client) == 503)
         self.assertTrue(handle_connect(table, event2, "test_id_2", apig_management_client) == 503)
         self.assertTrue(table.scan()["Count"] == 2)
 
         #Test: after user disconnects, should be able to reconnect to the same room with a new id
-        self.assertTrue(handle_disconnect(table, event2, "test_id", apig_management_client) == 200)
+        self.assertTrue(handle_disconnect(table, event2, "test_id_1", apig_management_client) == 200)
         self.assertTrue(handle_connect(table, event2, "test_id_2", apig_management_client) == 200)
         self.assertTrue(table.scan()["Count"] == 2)
 
