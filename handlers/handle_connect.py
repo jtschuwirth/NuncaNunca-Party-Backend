@@ -23,7 +23,9 @@ def handle_connect(table, event, connection_id, apig_management_client):
         if item["turn_status"] == "hosting":
             is_there_host = 1
         else:
-            players[item["user_name"]] = {"connection_id": item["connection_id"], "points": item["points"]}
+            players[item["user_name"]] = {"connection_id": item["connection_id"], 
+                                          "points": item["points"], 
+                                          "turn_status": item["turn_status"]}
 
     try:
         message = json.dumps({"new_connection":{"id": connection_id, "user_name": user_name, "points":0}})
@@ -48,7 +50,7 @@ def handle_connect(table, event, connection_id, apig_management_client):
                 "points":0
             })
         
-        elif not is_host and is_there_host and user_name in players:
+        elif not is_host and is_there_host and user_name in players and players[user_name]["turn_status"] == "disconnected" and players[user_name]["connection_id"] != connection_id:
             table.put_item(Item={
                 'connection_id': connection_id, 
                 'room_id': room_id, 
@@ -59,7 +61,7 @@ def handle_connect(table, event, connection_id, apig_management_client):
             table.delete_item(Key={'connection_id': players[user_name]["connection_id"]})
         else:
             message = json.dumps({"connection_error": "error connecting to this room"})
-
+            status_code = 503
 
         recipients = get_all_recipients(table, room_id)
         handle_ws_message(table, recipients, message, apig_management_client)
